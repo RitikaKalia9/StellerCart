@@ -1,0 +1,136 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Orders{% endblock title %}
+
+{% block css %}
+<link rel="stylesheet" href="{% static 'styles/pages/homepage.css' %}">
+<link rel="stylesheet" href="{% static 'styles/pages/orders.css' %}">
+{% endblock css %}
+
+{% block header %}
+<nav>
+  <div class="amazon-header" style="z-index:1;">
+    <div class="amazon-header-left-section">
+      <a href="/homepage" class="header-link">
+        <img class="amazon-logo" src="{% static 'images/Amazon-removebg-preview.png' %}">
+        <img class="amazon-mobile-logo" src="{% static 'images/mobileAmazon-removebg-preview.png' %}">
+      </a>
+    </div>
+    <div class="amazon-header-middle-section">
+      <form class="search-form" action="{% url 'homepage' %}" method="get">
+        <input class="search-bar" type="text" name="q" placeholder="Search">
+        <button class="search-button" type="submit">
+          <img class="search-icon" src="{% static 'images/icons/search-icon.png' %}">
+        </button>
+      </form>
+    </div>
+    <div class="amazon-header-right-section">
+      <div class="loyalty-badge">
+        <span class="fuel-icon">⛽</span>
+        <span class="fuel-amount">{{ fuel_units }}</span>
+        <span class="fuel-label">Fuel Units</span>
+      </div>
+      <a class="return-order-fields header-link" href="{% url 'orders' %}">
+        <span class="return-field">Returns</span>
+        <span class="order-field">& Orders</span>
+      </a>
+      <a class="orders-link header-link" href="{% url 'logout' %}">
+        <span class="returns-text">LOG -</span>
+        <span class="orders-text">OUT</span>
+      </a>
+      <a class="signin-link header-link" href="{% url 'contact' %}">
+        <span class="signin-text">Hello, you can</span>
+        <span class="account-text">Contact Us</span>
+      </a>
+      <a class="cart-link header-link" href="{% url 'checkout' %}">
+        <img class="cart-icon" src="{% static 'images/icons/cart-icon.png' %}">
+        <div class="cart-quantity js-cart-quantity">{{ cart_count }}</div>
+        <div class="cart-text">Cart</div>
+      </a>
+    </div>
+  </div>
+</nav>
+{% endblock header %}
+
+{% block body %}
+<div class="main">
+  <div class="page-title">Your Orders</div>
+
+  <div class="orders-grid">
+    {% for ordered_date, orders in grouped_orders.items %}
+    <div class="order-date-group">
+        <div class="order-date-title">{{ ordered_date }}</div>
+        {% for order in orders %}
+        <div class="order-container">
+            <div class="order-header">
+              <div class="order-header-left-section">
+                <div class="order-date">
+                  <div class="order-header-label">Order Placed:</div>
+                  <div>{{ order.ordered_date }}</div>
+                </div>
+                <div class="order-total">
+                  <div class="order-header-label">Total:</div>
+                  <div>₹{{ order.total_cost }}</div>
+                </div>
+              </div>
+
+              <div class="order-header-right-section">
+                <div class="order-header-label">Order ID:</div>
+                <div>{{ order.id }}</div>
+              </div>
+            </div>
+
+            <div class="order-details-grid">
+              <div class="product-image-container">
+                <img src="{{ order.product.image.url }}" alt="{{ order.product.name }}">
+              </div>
+
+              <div class="product-details">
+                <div class="product-name">
+                  {{ order.product.name }}
+                </div>
+                <div class="product-quantity">
+                  Quantity: {{ order.quantity }}
+                </div>
+
+                {% if order.shipping_address %}
+                <div class="order-shipping-address" style="font-size:13px; color:#6b7280; margin-top:6px; line-height:1.4;">
+                  <strong>Shipped to:</strong> {{ order.shipping_name }}<br>
+                  {{ order.shipping_address }}, {{ order.shipping_city }}
+                  {% if order.shipping_zipcode %} - {{ order.shipping_zipcode }}{% endif %}<br>
+                  {{ order.get_shipping_state_display }}
+                  {% if order.shipping_phone %} · {{ order.shipping_phone }}{% endif %}
+                </div>
+                {% else %}
+                <div class="order-shipping-address" style="font-size:13px; color:#9ca3af; margin-top:6px; font-style:italic;">
+                  No shipping address on file for this order.
+                </div>
+                {% endif %}
+              </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% empty %}
+    <div class="no-orders-message" style="text-align:center; padding:40px; color:#6b7280;">
+      You haven't placed any orders yet. <a href="{% url 'homepage' %}">Start shopping →</a>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock body %}
+
+{% block footer %}
+{% if messages %}
+{% for message in messages %}
+  <div class="alert alert-{{ message.tags }} alert-dismissible fade show" style="background-color:#ffc107;" role="alert">
+    <strong>{{ message }}</strong>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+  </div>
+{% endfor %}
+{% endif %}
+<div class="foot-panel3">
+  <img class="logo" src="{% static 'images/Amazon-removebg-preview.png' %}">
+</div>
+{% endblock footer %}

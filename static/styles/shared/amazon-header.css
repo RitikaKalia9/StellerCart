@@ -1,0 +1,355 @@
+/* ── Amazon Header (fixed navigation) ── */
+
+.amazon-header {
+  z-index: 1000;
+  background-color: var(--color-header-bg, #1e1b4b);
+  color: white;
+  padding-right: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 60px;
+  padding-left: 15px;
+}
+
+/* ── Left section (logo) ── */
+.amazon-header-left-section {
+  width: 180px;
+  flex-shrink: 0;
+}
+
+@media (max-width: 800px) {
+  .amazon-header-left-section {
+    width: unset;
+  }
+}
+
+.header-link {
+  display: inline-block;
+  padding: 6px;
+  border-radius: 2px;
+  cursor: pointer;
+  text-decoration: none;
+  border: 1px solid rgba(0, 0, 0, 0);
+  transition: border-color 0.15s;
+}
+
+.header-link:hover {
+  border-color: white;
+}
+
+.amazon-logo {
+  width: 140px;
+  height: 50px;
+  margin-top: 5px;
+  margin-bottom: 5px;
+}
+
+.amazon-mobile-logo {
+  display: none;
+  width: 60px;
+  height: 50px;
+  margin: 5px;
+}
+
+@media (max-width: 575px) {
+  .amazon-logo {
+    display: none;
+  }
+
+  .amazon-mobile-logo {
+    display: block;
+    height: 35px;
+    margin-top: 5px;
+  }
+}
+
+/* ── Middle section (search bar) ── */
+.amazon-header-middle-section {
+  flex: 1;
+  max-width: 850px;
+  margin: 0 16px;
+  display: flex;
+}
+
+.search-form {
+  flex: 1;
+  display: flex;
+}
+
+.search-bar {
+  flex: 1;
+  width: 0;
+  font-size: 16px;
+  height: 40px;
+  padding-left: 15px;
+  border: none;
+  border-top-left-radius: 4px;
+  border-bottom-left-radius: 4px;
+  outline: none;
+}
+
+.search-button {
+  background-color: var(--color-accent, #14b8a6);
+  border: none;
+  width: 45px;
+  height: 40px;
+  border-top-right-radius: 4px;
+  border-bottom-right-radius: 4px;
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.search-button:hover {
+  background-color: var(--color-accent-hover, #0d9488);
+}
+
+.search-icon {
+  height: 22px;
+  margin-left: 2px;
+  margin-top: 3px;
+  filter: brightness(0) invert(1);
+}
+
+/* ── Right section (user actions) ── */
+.amazon-header-right-section {
+  flex-shrink: 0;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 14px;
+}
+
+/* Loyalty / Fuel badge */
+.loyalty-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.08);
+  font-size: 13px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.fuel-icon {
+  font-size: 16px;
+  line-height: 1;
+}
+
+.fuel-amount {
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.fuel-label {
+  font-size: 11px;
+  opacity: 0.85;
+  white-space: nowrap;
+}
+
+/* Sign in link */
+.signin-link {
+  color: white;
+  text-decoration: none;
+  padding: 6px 8px;
+  border-radius: 2px;
+  border: 1px solid transparent;
+  transition: border-color 0.15s;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.signin-link:hover {
+  border-color: white;
+}
+
+.signin-text {
+  display: block;
+  font-size: 12px;
+  line-height: 1.2;
+}
+
+.account-text {
+  display: block;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+/* Returns & Orders */
+.orders-link {
+  color: white;
+  text-decoration: none;
+  padding: 6px 8px;
+  border-radius: 2px;
+  border: 1px solid transparent;
+  transition: border-color 0.15s;
+  display: inline-block;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.orders-link:hover {
+  border-color: white;
+}
+
+.return-order-fields {
+  padding: 6px 8px;
+  cursor: pointer;
+  color: white;
+  flex-shrink: 0;
+  text-decoration: none;
+  display: inline-block;
+  white-space: nowrap;
+}
+
+.returns-text {
+  display: block;
+  font-size: 12px;
+  line-height: 1.2;
+}
+
+.orders-text {
+  display: block;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+/* Cart */
+.cart-link {
+  color: white;
+  display: flex;
+  align-items: center;
+  position: relative;
+  padding: 6px 8px 6px 4px;
+  border-radius: 2px;
+  border: 1px solid transparent;
+  transition: border-color 0.15s;
+  text-decoration: none;
+  flex-shrink: 0;
+}
+
+.cart-link:hover {
+  border-color: white;
+}
+
+.cart-icon {
+  width: 42px;
+  height: auto;
+}
+
+.cart-text {
+  margin-top: 12px;
+  font-size: 14px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.cart-quantity {
+  color: var(--color-accent, #14b8a6);
+  font-size: 15px;
+  font-weight: 700;
+  position: absolute;
+  top: 2px;
+  left: 18px;
+  width: 26px;
+  text-align: center;
+  pointer-events: none;
+}
+
+/* ── Responsive adjustments ── */
+
+/* Tablet: drop Returns & Orders and Contact Us; shrink loyalty badge */
+@media (max-width: 900px) {
+  .amazon-header-right-section {
+    gap: 8px;
+  }
+
+  .return-order-fields {
+    display: none;
+  }
+
+  .signin-link {
+    display: none;
+  }
+
+  .fuel-label {
+    display: none;
+  }
+}
+
+@media (max-width: 800px) {
+  .cart-text {
+    display: none;
+  }
+
+  .cart-icon {
+    width: 36px;
+  }
+
+  .cart-quantity {
+    left: 13px;
+    top: -2px;
+    font-size: 13px;
+  }
+}
+
+/* Mobile: keep only fuel amount + log-out + cart */
+@media (max-width: 575px) {
+  .amazon-header {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+
+  .amazon-header-right-section {
+    gap: 4px;
+  }
+
+  .loyalty-badge {
+    padding: 4px 6px;
+    font-size: 11px;
+  }
+
+  .fuel-icon {
+    font-size: 14px;
+  }
+
+  .fuel-amount {
+    font-size: 12px;
+  }
+
+  .orders-link {
+    padding: 4px 6px;
+  }
+
+  .returns-text {
+    font-size: 11px;
+  }
+
+  .orders-text {
+    font-size: 12px;
+  }
+
+  .search-bar {
+    font-size: 14px;
+    height: 34px;
+    padding-left: 10px;
+  }
+
+  .search-button {
+    width: 38px;
+    height: 34px;
+  }
+
+  .search-icon {
+    height: 18px;
+  }
+}

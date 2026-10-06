@@ -1,0 +1,355 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load home_extras %}
+
+{% block title %}Home{% endblock title %}
+
+{% block css %}
+<link rel="stylesheet" href="{% static 'styles/pages/homepage.css' %}">
+<style>
+  /* ── Star field for the parallax hero ──
+     homepage.css didn't populate #stars-layer with anything, so the hero
+     had no stars and no parallax motion. Generated + animated below. */
+  .hero-parallax {
+    position: relative;
+    overflow: hidden;
+  }
+  .stars-layer {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    will-change: transform;
+  }
+  .star {
+    position: absolute;
+    background: #fff;
+    border-radius: 50%;
+    animation: star-twinkle ease-in-out infinite;
+  }
+  @keyframes star-twinkle {
+    0%, 100% { opacity: 0.25; }
+    50% { opacity: 1; }
+  }
+</style>
+{% endblock css %}
+
+{% block header %}
+<!-- Amazon Header -->
+<nav>
+  <div class="amazon-header" style="z-index:1;">
+    <div class="amazon-header-left-section">
+      <a href="/homepage" class="header-link">
+        <img class="amazon-logo" src="{% static 'images/Amazon-removebg-preview.png' %}">
+        <img class="amazon-mobile-logo" src="{% static 'images/mobileAmazon-removebg-preview.png' %}">
+      </a>
+    </div>
+    <div class="amazon-header-middle-section">
+      <form class="search-form" action="{% url 'homepage' %}" method="get">
+        <input class="search-bar" type="text" name="q" placeholder="Search" value="{{ query }}">
+        {% if category %}<input type="hidden" name="category" value="{{ category }}">{% endif %}
+        <button class="search-button" type="submit">
+          <img class="search-icon" src="{% static 'images/icons/search-icon.png' %}">
+        </button>
+      </form>
+    </div>
+    <div class="amazon-header-right-section">
+      <div class="loyalty-badge">
+        <span class="fuel-icon">⛽</span>
+        <span class="fuel-amount" id="fuel-amount">{{ fuel_units }}</span>
+        <span class="fuel-label">Fuel Units</span>
+      </div>
+      <a class="return-order-fields header-link" href="{% url 'orders' %}">
+        <span class="return-field">Returns</span>
+        <span class="order-field">& Orders</span>
+      </a>
+      <a class="orders-link header-link" href="{% url 'logout' %}">
+        <span class="returns-text">LOG -</span>
+        <span class="orders-text">OUT</span>
+      </a>
+      <a class="signin-link header-link" href="{% url 'contact' %}">
+        <span class="signin-text">Hello, you can</span>
+        <span class="account-text">Contact Us</span>
+      </a>
+      <a class="cart-link header-link" href="{% url 'checkout' %}">
+        <img class="cart-icon" src="{% static 'images/icons/cart-icon.png' %}">
+        <div class="cart-quantity js-cart-quantity" id="cart-quantity">{{ cart_count }}</div>
+        <div class="cart-text">Cart</div>
+      </a>
+    </div>
+  </div>
+</nav>
+{% endblock header %}
+
+{% block body %}
+<!-- ── PARALLAX HERO with Constellation Nav ── -->
+<section class="hero-parallax">
+  <div class="stars-layer" id="stars-layer"></div>
+  <div class="constellation-nav" id="constellation-nav">
+    <a href="{% url 'homepage' %}" class="constellation-link {% if not category %}active-category{% endif %}">
+      <span class="star-dot"></span> All
+    </a>
+    {% for cat in categories %}
+    <a href="?category={{ cat }}" class="constellation-link {% if category == cat %}active-category{% endif %}">
+      <span class="star-dot"></span> {{ cat|capfirst }}
+    </a>
+    {% endfor %}
+  </div>
+  <div class="hero-text">
+    <h1>Explore the StellerCart Galaxy</h1>
+    <p>Your journey to the best products starts here.</p>
+  </div>
+</section>
+
+{% if not query and not category %}
+<!-- ── CAROUSEL ── -->
+<div class="container-fluid px-0 custom-carousel-wrapper">
+  <div id="mainCarousel" class="carousel slide" data-bs-ride="carousel">
+    <div class="carousel-indicators">
+      <button type="button" data-bs-target="#mainCarousel" data-bs-slide-to="0" class="active" aria-current="true"></button>
+      <button type="button" data-bs-target="#mainCarousel" data-bs-slide-to="1"></button>
+      <button type="button" data-bs-target="#mainCarousel" data-bs-slide-to="2"></button>
+    </div>
+    <div class="carousel-inner">
+      <div class="carousel-item active">
+        <img src="{% static 'images/carousels/img1.webp' %}" class="d-block w-100" alt="Slide 1">
+        <div class="carousel-caption d-none d-md-block">
+          <h5>New Arrivals</h5>
+          <p>Discover the latest trends in our collection.</p>
+        </div>
+      </div>
+      <div class="carousel-item">
+        <img src="{% static 'images/carousels/img2.webp' %}" class="d-block w-100" alt="Slide 2">
+        <div class="carousel-caption d-none d-md-block">
+          <h5>Best Sellers</h5>
+          <p>Shop our most popular products.</p>
+        </div>
+      </div>
+      <div class="carousel-item">
+        <img src="{% static 'images/carousels/img3.webp' %}" class="d-block w-100" alt="Slide 3">
+        <div class="carousel-caption d-none d-md-block">
+          <h5>Exclusive Offers</h5>
+          <p>Limited time discounts – don't miss out!</p>
+        </div>
+      </div>
+    </div>
+    <button class="carousel-control-prev" type="button" data-bs-target="#mainCarousel" data-bs-slide="prev">
+      <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+      <span class="visually-hidden">Previous</span>
+    </button>
+    <button class="carousel-control-next" type="button" data-bs-target="#mainCarousel" data-bs-slide="next">
+      <span class="carousel-control-next-icon" aria-hidden="true"></span>
+      <span class="visually-hidden">Next</span>
+    </button>
+  </div>
+</div>
+{% endif %}
+
+<!-- ── WELCOME ALERT ── -->
+<div class="alert alert-warning alert-dismissible fade show" style="margin-top: 30px; max-width: 1200px; margin-left: auto; margin-right: auto;" role="alert">
+  <strong>Welcome {{ request.user }}!</strong> Explore our wide range of products and enjoy a seamless shopping experience.
+  <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+
+{% if query or category %}
+<!-- ── SEARCH / CATEGORY RESULTS ──
+     This is the section that was missing: `products` was already being
+     filtered correctly in the view, nothing ever rendered it. -->
+<section class="category-section">
+  <div class="section-header">
+    {% if query %}
+      <h2 class="section-title">Results for "{{ query }}"</h2>
+    {% else %}
+      <h2 class="section-title">{{ category|capfirst }}</h2>
+    {% endif %}
+    <a href="{% url 'homepage' %}" class="view-all">Clear filters ✕</a>
+  </div>
+
+  {% if products %}
+  <div class="category-grid">
+    {% for product in products %}
+    <a href="{% url 'product_detail' product.id %}" class="product-link">
+      <div class="product-container">
+        <div class="product-image-container">
+          <img class="product-image" src="{{ product.image.url }}" alt="{{ product.name }}">
+        </div>
+        <div class="product-name limit-text-to-2-lines">{{ product.name }}</div>
+        <div class="product-rating-container">
+          <img class="product-rating-stars" src="{% static 'images/ratings/' %}{{ product.rating_image }}" alt="Rating">
+          <span class="product-rating-count">{{ product.rating_count }}</span>
+        </div>
+        <div class="product-price">₹{{ product.price_rupees }}</div>
+        <form action="{% url 'add_to_cart' product.id %}" method="post" class="add-to-cart-form" onclick="event.stopPropagation();">
+          {% csrf_token %}
+          <button class="add-to-cart-button button-primary" type="submit">Add to Cart</button>
+        </form>
+      </div>
+    </a>
+    {% endfor %}
+  </div>
+  {% else %}
+  <p style="padding: 20px 0; color:#666;">
+    {% if query %}No products matched "{{ query }}".{% else %}No products in this category yet.{% endif %}
+  </p>
+  {% endif %}
+</section>
+
+{% else %}
+<!-- ── FEATURED PRODUCTS ── -->
+{% if featured %}
+<section class="category-section">
+  <div class="section-header">
+    <h2 class="section-title">🌟 Featured Products</h2>
+    <a href="{% url 'homepage' %}" class="view-all">View All →</a>
+  </div>
+  <div class="category-grid">
+    {% for product in featured %}
+    <a href="{% url 'product_detail' product.id %}" class="product-link">
+      <div class="product-container">
+        <div class="product-image-container">
+          <img class="product-image" src="{{ product.image.url }}" alt="{{ product.name }}">
+        </div>
+        <div class="product-name limit-text-to-2-lines">{{ product.name }}</div>
+        <div class="product-rating-container">
+          <!-- DEBUG: rating_image = "{{ product.rating_image }}" -->
+          <img class="product-rating-stars" src="{% static 'images/ratings/' %}{{ product.rating_image }}" alt="Rating">
+          <span class="product-rating-count">{{ product.rating_count }}</span>
+        </div>
+        <div class="product-price">₹{{ product.price_rupees }}</div>
+        <form action="{% url 'add_to_cart' product.id %}" method="post" class="add-to-cart-form" onclick="event.stopPropagation();">
+          {% csrf_token %}
+          <button class="add-to-cart-button button-primary" type="submit">Add to Cart</button>
+        </form>
+      </div>
+    </a>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+
+<!-- ── CATEGORY SECTIONS ── -->
+{% for cat in categories %}
+{% with cat_products=category_products|get_item:cat %}
+{% if cat_products %}
+<section class="category-section">
+  <div class="section-header">
+    <h2 class="section-title">{{ cat|capfirst }}</h2>
+    <a href="?category={{ cat }}" class="view-all">View All →</a>
+  </div>
+  <div class="category-grid">
+    {% for product in cat_products %}
+    <a href="{% url 'product_detail' product.id %}" class="product-link">
+      <div class="product-container">
+        <div class="product-image-container">
+          <img class="product-image" src="{{ product.image.url }}" alt="{{ product.name }}">
+        </div>
+        <div class="product-name limit-text-to-2-lines">{{ product.name }}</div>
+        <div class="product-rating-container">
+          <img class="product-rating-stars" src="{% static 'images/ratings/' %}{{ product.rating_image }}" alt="Rating">
+          <span class="product-rating-count">{{ product.rating_count }}</span>
+        </div>
+        <div class="product-price">₹{{ product.price_rupees }}</div>
+        <form action="{% url 'add_to_cart' product.id %}" method="post" class="add-to-cart-form" onclick="event.stopPropagation();">
+          {% csrf_token %}
+          <button class="add-to-cart-button button-primary" type="submit">Add to Cart</button>
+        </form>
+      </div>
+    </a>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+{% endwith %}
+{% endfor %}
+{% endif %}
+
+<!-- ── SPIN-TO-WIN ──
+<button class="spin-btn" id="spinBtn">🚀 Spin to Win!</button>
+<div class="spin-modal" id="spinModal">
+  <div class="spin-content">
+    <span class="spin-close" id="spinClose">&times;</span>
+    <h2>Cosmic Discount Wheel</h2>
+    <div class="wheel-container">
+      <canvas id="wheelCanvas" width="300" height="300"></canvas>
+      <button class="spin-wheel-btn" id="spinWheelBtn">SPIN</button>
+    </div>
+    <p id="spinResult" class="spin-result"></p>
+  </div>
+</div>
+
+{% endblock body %} -->
+
+{% block footer %}
+<!-- Footer -->
+<div class="footer">
+  <div class="foot-panel1 js-foot-panel1">Back to top</div>
+  <div class="foot-panel2">
+    <ul class="list-unstyled">
+      <h6>Quick Links</h6>
+      <li><a href="/homepage">Home</a></li>
+      <li><a href="{% url 'login' %}">Log In</a></li>
+      <li><a href="{% url 'signup' %}">Sign Up</a></li>
+      <li><a href="{% url 'checkout' %}">Checkout</a></li>
+      <li><a href="{% url 'contact' %}">Contact Us</a></li>
+    </ul>
+    <ul class="list-unstyled">
+      <h6>Information</h6>
+      <li><a href="#">FAQs</a></li>
+      <li><a href="#">Returns & Orders</a></li>
+      <li><a href="#">Wish List</a></li>
+      <li><a href="#">Privacy Policy</a></li>
+      <li><a href="#">Terms & Conditions</a></li>
+    </ul>
+    <ul class="list-unstyled">
+      <h6>Contact</h6>
+      <li>Email: info@example.com</li>
+      <li>Phone: +123456789</li>
+      <li>Address: 123 Main Street, City, Country</li>
+    </ul>
+  </div>
+  <div class="foot-panel3">
+    <img class="logo" src="{% static 'images/Amazon-removebg-preview.png' %}">
+  </div>
+  <div class="foot-panel4">
+    <div class="pages">
+      <a>Conditions of Use</a>
+      <a>Privacy Notice</a>
+    </div>
+    <div class="copy-right">© 2022-2026, StellerCart.com, Inc. or its affiliates</div>
+  </div>
+</div>
+{% endblock footer %}
+
+{% block script %}
+<script>
+  // ── Star field + parallax for the hero ──
+  // #stars-layer was previously an empty div with no content and no
+  // scroll behavior. This generates a random field of stars once, then
+  // shifts them slightly slower than the page scroll for a parallax feel.
+  document.addEventListener('DOMContentLoaded', function() {
+    var layer = document.getElementById('stars-layer');
+    var hero = document.querySelector('.hero-parallax');
+    if (!layer || !hero) return;
+
+    var STAR_COUNT = 80;
+    for (var i = 0; i < STAR_COUNT; i++) {
+      var star = document.createElement('div');
+      star.className = 'star';
+      var size = (Math.random() * 2 + 1).toFixed(1); // 1px – 3px
+      star.style.width = size + 'px';
+      star.style.height = size + 'px';
+      star.style.top = (Math.random() * 100) + '%';
+      star.style.left = (Math.random() * 100) + '%';
+      star.style.animationDuration = (Math.random() * 2 + 1.5) + 's';
+      star.style.animationDelay = (Math.random() * 2) + 's';
+      layer.appendChild(star);
+    }
+
+    window.addEventListener('scroll', function() {
+      var offset = window.scrollY;
+      // Stars drift slower than the page for a depth effect; hero text
+      // stays put since it's outside .stars-layer.
+      layer.style.transform = 'translateY(' + (offset * 0.3) + 'px)';
+    }, { passive: true });
+  });
+</script>
+{% endblock script %}

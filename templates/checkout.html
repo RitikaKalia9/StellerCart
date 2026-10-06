@@ -1,0 +1,216 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load home_extras %}
+
+
+{% block title %}Checkout{% endblock title %}
+
+
+{% block css %}
+<link rel="stylesheet" href="{% static 'styles/pages/checkout/checkout-header.css' %}">
+<link rel="stylesheet" href="{% static 'styles/pages/checkout/checkout.css' %}">
+{% endblock css %}
+
+
+{% block header %}
+<div class="checkout-header">
+  <div class="header-content">
+    <div class="checkout-header-left-section">
+      <a href="{% url 'homepage' %}">
+        <img class="amazon-logo" src="{% static 'images/Amazon-removebg-preview.png' %}">
+        <img class="amazon-mobile-logo" src="{% static 'images/mobileAmazon-removebg-preview.png' %}">
+      </a>
+    </div>
+
+    <div class="checkout-header-middle-section">
+      Checkout(<a class="return-to-home-link" href="/homepage">  {{ cart_items|cart_quantity_total }} items </a>)
+    </div>
+  
+    <div class="checkout-header-right-section">
+      <img src="{% static 'images/icons/checkout-lock-icon.png' %}">
+    </div>
+  </div>
+</div>
+{% endblock header %}
+
+{% block body %}
+<div class="main">
+  <div class="page-title">Review your order</div>
+
+  <div class="checkout-grid">
+    <div class="order-summary">
+      {% for cart_item in cart_items %}
+        <div class="cart-item-container">
+          <div class="delivery-date">
+            Delivery date: {{ cart_item.delivery_date|default:"Not specified"|date:"D, d M Y" }}
+          </div>
+
+          <div class="cart-item-details-grid">
+            <img class="product-image" src="{{ cart_item.product.image.url }}">
+
+            <div class="cart-item-details">
+              <div class="product-name">
+                {{ cart_item.product.name }}
+              </div>
+              <div class="product-price">
+                ₹{{ cart_item.product.price_rupees }}
+              </div>
+
+              <div class="product-quantity">
+                <form class="js-cart-item-form" method="POST">
+                  {% csrf_token %}
+                  <input type="hidden" name="cart_item_id" value="{{ cart_item.id }}">
+                  <span class="quantity container" >
+                    Quantity: <input class="quantity-container" type="number" name="quantity" value="{{ cart_item.quantity }}" min="1" >
+                  </span>
+                  <button class="update-quantity-link link-primary" type="submit" name="update_quantity">Update</button>
+                  <button class="delete-quantity-link link-primary" type="submit" name="delete_item">Delete</button>
+                </form>
+              </div>
+            </div>
+
+            <div class="delivery-options">
+              <div class="delivery-options-title">
+                  Choose a delivery option:
+              </div>
+          
+              <form id="delivery-options-form" data-cart-item-id="{{ cart_item.id }}" action="{% url 'update_delivery_option' cart_item.id %}"  method="POST">
+                {% csrf_token %}
+                {% for option in delivery_options %}
+                    <div class="delivery-option">
+                        <input type="radio" class="js-delivery-option" id="delivery-option-{{ option.id }}" name="delivery_option" value="{{ option.id }}" {% if option.id == cart_item.delivery_option.id %} checked {% endif %}>
+                        <label for="delivery-option-{{ option.id }}">
+                            <div>
+                                <div class="delivery-option-date">
+                                    {{ option.delivery_date|date:"D, d M Y" }}
+                                </div>
+                                <div class="delivery-option-price">
+                                    {% if option.price_rupees == 0 %}
+                                        FREE Shipping
+                                    {% else %}
+                                        ₹{{ option.price_rupees }} - Shipping
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </label>
+                    </div>
+                {% endfor %}
+                <button class="update-delivery-option-button" type="submit">Update Delivery Option</button>
+            </form>
+          </div>  
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+
+    <div class="payment-summary">
+      <div class="payment-summary-title">
+        Order Summary
+      </div>
+
+      <div class="payment-summary-row">
+        <div>Items ({{ cart_items|cart_quantity_total }}):</div>
+        <div class="payment-summary-money">₹{{ total_price }}</div>
+      </div>
+
+      <div class="payment-summary-row">
+        <div>Shipping & handling:</div>
+        <div class="payment-summary-money">₹{{ shipping }}</div>
+      </div>
+
+      <div class="payment-summary-row subtotal-row">
+        <div>Total before tax:</div>
+        <div class="payment-summary-money">₹{{ total_price }}</div>
+      </div>
+
+      <div class="payment-summary-row">
+        <div>Estimated tax (10%):</div>
+        <div class="payment-summary-money">₹{{ tax }}</div>
+      </div>
+
+      <div class="payment-summary-row total-row">
+        <div>Order total:</div>
+        <div class="payment-summary-money">₹{{ total }}</div>
+      </div>
+      <button class="place-order-button button-primary js-place-order" type="submit">Proceed to Place your order</button>
+    </div>
+  </div>
+</div>
+{% endblock body %}
+
+
+{% block script %}
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+  // Event listener for updating quantity and deleting items
+  // (fixed: previously fetched '/update_cart/', a URL that doesn't exist
+  // anywhere in urls.py — this always 404'd. Also, FormData(form) without
+  // the submitter never included which button was clicked, so even with a
+  // working URL, neither `update_quantity` nor `delete_item` would ever
+  // show up in request.POST on the backend. Both fixed below.)
+  const cartItemForms = document.querySelectorAll('.js-cart-item-form');
+  cartItemForms.forEach(form => {
+    form.addEventListener('submit', function(event) {
+      event.preventDefault();
+      // event.submitter is the actual <button> that triggered the submit —
+      // passing it to FormData includes its name=value pair, exactly like
+      // a native form submission would.
+      const formData = new FormData(form, event.submitter);
+      fetch("{% url 'checkout' %}", {
+        method: 'POST',
+        body: formData,
+        headers: {
+          'X-CSRFToken': '{{ csrf_token }}'
+        }
+      })
+      .then(response => {
+        if (response.ok) {
+          console.log("Cart updated successfully");
+          window.location.reload(); // Reload the page to reflect changes
+        } else {
+          console.error('Failed to update cart');
+        }
+      })
+      .catch(error => {
+        console.error("Error updating cart:", error);
+      });
+    });
+  });
+
+  // Event listener for updating delivery options
+  const deliveryOptionForms = document.querySelectorAll('.js-delivery-option');
+  deliveryOptionForms.forEach(form => {
+    form.addEventListener('change', function(event) {
+      const formData = new FormData();
+      formData.append('cart_item_id', form.dataset.cartItemId);
+      formData.append('delivery_option', event.target.value);
+
+      fetch("{% url 'update_delivery_option' 0 %}".replace('0', form.dataset.cartItemId), {
+        method: 'POST',
+        body: formData,
+        headers: {
+          'X-CSRFToken': '{{ csrf_token }}'
+        }
+      })
+      .then(response => {
+        if (response.ok) {
+          console.log("Delivery option updated successfully");
+        } else {
+          console.error('Failed to update delivery option');
+        }
+      })
+      .catch(error => {
+        console.error("Error updating delivery option:", error);
+      });
+    });
+  });
+
+  // Event listener for "Proceed to Place your order" button
+  const placeOrderButton = document.querySelector('.js-place-order');
+  placeOrderButton.addEventListener('click', function() {
+    console.log("button clicked!");
+    window.location.href = '/shipping'; // Redirect to shipping.html
+  });
+});
+</script>
+{% endblock script %}

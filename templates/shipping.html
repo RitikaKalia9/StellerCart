@@ -1,0 +1,306 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Shipping Details & Payment Options{% endblock title %}
+
+<!-- Here are the CSS files for this page. -->
+{% block css %}
+<link rel="stylesheet" href="{% static 'styles/shared/general.css' %}">
+<link rel="stylesheet" href="{% static 'styles/pages/checkout/checkout.css' %}">
+<link rel="stylesheet" href="{% static 'styles/pages/homepage.css' %}">
+{% endblock css %}
+
+{% block header %}
+<div class="checkout-header">
+  <div class="header-content">
+    <div class="checkout-header-left-section">
+      <a href="{% url 'homepage' %}">
+        <img class="amazon-logo" src="{% static 'images/Amazon-removebg-preview.png' %}">
+        <img class="amazon-mobile-logo" src="{% static 'images/mobileAmazon-removebg-preview.png' %}">
+      </a>
+    </div>
+    <div class="checkout-header-middle-section">
+      <!-- Placeholder for any middle section content -->
+    </div>
+  </div>
+</div>
+{% endblock header %}
+
+{% block body %}
+<div class="checkout-grid">
+  <div class="order-summary" style="margin-left:18px;">
+    <div style="border-color:grey; font-size:24px; margin-top:12px;">
+      Shipping Details
+      {# CHANGED: only show "Saved" for a row that really exists in the DB #}
+      {% if customer and customer.pk %}
+        <span style="font-size:14px; color:#059669; font-weight:normal;">✅ Saved</span>
+      {% endif %}
+    </div>
+    <div class="container py-4">
+      <form method="post" id="shipping-details-form">
+        {% csrf_token %}
+        <div class="form-group">
+          <label for="name">Name:</label>
+          <input type="text" id="name" name="name" class="form-control" value="{{ customer.name|default:'' }}" required>
+        </div>
+        <div class="form-group">
+          <label for="phone" class="form-label">Phone Number:</label>
+          <input type="tel" class="form-control" id="phone" name="phone" value="{{ customer.phone|default:'' }}" required>
+        </div>
+        <div class="form-group">
+          <label for="address">Address:</label>
+          <input type="text" id="address" name="address" class="form-control" value="{{ customer.address|default:'' }}" required>
+        </div>
+
+        {# CHANGED: PIN code moved above city and state, with hint + numeric keypad #}
+        <div class="form-group">
+          <label for="zipcode">PIN Code:</label>
+          <input type="text" id="zipcode" name="zipcode" class="form-control"
+                 value="{{ customer.zipcode|default:'' }}"
+                 inputmode="numeric" maxlength="6" pattern="\d{6}"
+                 autocomplete="postal-code" required>
+          <small id="pin-hint" class="text-muted">City and state fill in automatically.</small>
+        </div>
+        <div class="form-group">
+          <label for="city">City:</label>
+          <input type="text" id="city" name="city" class="form-control" value="{{ customer.city|default:'' }}" required>
+        </div>
+        <div class="form-group">
+          <label for="state">State:</label>
+          <select id="state" name="state" class="form-control" required>
+            <option value="">Select State</option>
+            {% for state in STATE_CHOICES %}
+            <option value="{{ state.0 }}" {% if customer.state == state.0 %}selected{% endif %}>{{ state.1 }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div style="margin-top:30px;">
+          <button type="submit" class="btn btn-warning js-submit">
+            {% if customer and customer.pk %}Update Shipping Details{% else %}Save Shipping Details{% endif %}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="payment-summary" style="margin-right:18px;">
+    <div class="payment-summary-title">
+      Payment Options
+    </div>
+
+    {# CHANGED: customer.pk, so an unsaved/failed form doesn't unlock payment #}
+    {% if not customer or not customer.pk %}
+    <p style="color:#991b1b; font-size:14px; margin-bottom:12px;">
+      Please save your shipping details before placing your order.
+    </p>
+    {% endif %}
+
+    <form id="cash-on-delivery-form" method="post" action="{% url 'move_to_order_placed' %}">
+      {% csrf_token %}
+      <button
+        class="place-order-button button-primary js-place-order"
+        type="button"
+        {% if not customer or not customer.pk %}disabled title="Save your shipping details first"{% endif %}>
+        Cash on Delivery
+      </button>
+    </form>
+
+    <form id="online-payment-form" method="post" onsubmit="return false;">
+      {% csrf_token %}
+      <button
+        id="razorpay-button"
+        class="place-order-button button-primary js-online-payment"
+        type="button"
+        {% if not customer or not customer.pk %}disabled title="Save your shipping details first"{% endif %}>
+        Make Online Payment
+      </button>
+    </form>
+  </div>
+</div>
+{% endblock body %}
+
+{% block footer %}
+{% if messages %}
+{% for message in messages %}
+  <div class="alert alert-{{ message.tags }} alert-dismissible fade show" style="background-color:#ffc107;" role="alert">
+    <strong>{{ message }}</strong>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+  </div>
+{% endfor %}
+{% endif %}
+<div class="foot-panel3" style="height:95px;">
+  <img class="logo" src="{% static 'images/Amazon-removebg-preview.png' %}">
+</div>
+{% endblock footer %}
+
+{% block script %}
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+
+    // ---- NEW: PIN-first autofill of city + state ----
+    var pinInput = document.getElementById('zipcode');
+    var cityInput = document.getElementById('city');
+    var stateSelect = document.getElementById('state');
+    var pinHint = document.getElementById('pin-hint');
+    var lastPin = pinInput.value.trim();   // don't overwrite saved values on page load
+
+    pinInput.addEventListener('input', async function () {
+      var pin = pinInput.value.trim();
+      if (pin === lastPin) return;
+      lastPin = pin;
+
+      if (!/^\d{6}$/.test(pin)) {
+        pinHint.textContent = 'City and state fill in automatically.';
+        return;
+      }
+      try {
+        var res = await fetch('/pincode_lookup/' + pin + '/');
+        if (res.status === 404) {
+          pinHint.textContent = 'We could not find this PIN code. Please check it.';
+          return;
+        }
+        if (!res.ok) return;               // let the server validate
+        var data = await res.json();
+        if (data.city) cityInput.value = data.city;
+        if (data.state_code) stateSelect.value = data.state_code;
+        pinHint.textContent = 'City and state filled from your PIN code. You can edit them.';
+      } catch (e) { /* ignore: user can fill the fields manually */ }
+    });
+
+    var csrftoken = document.querySelector('#online-payment-form [name=csrfmiddlewaretoken]').value;
+
+    // ---- Cash on Delivery (unchanged) ----
+    var cashOnDeliveryButton = document.querySelector('.js-place-order');
+    if (cashOnDeliveryButton) {
+      cashOnDeliveryButton.addEventListener('click', function(event) {
+        event.preventDefault();
+
+        if (cashOnDeliveryButton.disabled) {
+          alert('Please save your shipping details first.');
+          return;
+        }
+
+        var form = document.getElementById('cash-on-delivery-form');
+        if (!form) {
+          console.error('Form not found');
+          return;
+        }
+
+        var formData = new FormData(form);
+
+        fetch(form.action, {
+          method: form.method,
+          body: formData,
+          headers: { 'X-CSRFToken': formData.get('csrfmiddlewaretoken') }
+        })
+          .then(function(response) {
+            if (!response.ok) {
+              throw new Error('Failed to place order');
+            }
+            return response.json();
+          })
+          .then(function(data) {
+            window.location.href = data.redirect_url;
+          })
+          .catch(function(error) {
+            console.error('Error placing order:', error);
+            alert('Something went wrong placing your order. Please try again.');
+          });
+      });
+    }
+
+    // ---- Razorpay online payment (unchanged) ----
+    var razorpayButton = document.getElementById('razorpay-button');
+    if (razorpayButton) {
+      razorpayButton.addEventListener('click', function() {
+        if (razorpayButton.disabled) {
+          alert('Please save your shipping details first.');
+          return;
+        }
+
+        razorpayButton.disabled = true;
+        razorpayButton.textContent = 'Processing...';
+
+        fetch("{% url 'create_razorpay_order' %}", {
+          method: 'POST',
+          headers: { 'X-CSRFToken': csrftoken }
+        })
+          .then(function(res) { return res.json(); })
+          .then(function(data) {
+            if (data.error) {
+              alert(data.error);
+              razorpayButton.disabled = false;
+              razorpayButton.textContent = 'Make Online Payment';
+              return;
+            }
+
+            var options = {
+              key: data.key_id,
+              amount: data.amount,
+              currency: data.currency,
+              order_id: data.order_id,
+              name: 'StellerCart',
+              description: 'Order Payment',
+              prefill: {
+                name: '{{ customer.name|default:request.user.username|escapejs }}',
+                contact: '{{ customer.phone|default:""|escapejs }}',
+                email: '{{ request.user.email|escapejs }}'
+              },
+              theme: { color: '#febd69' },
+              handler: function(response) {
+                fetch("{% url 'verify_razorpay_payment' %}", {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': csrftoken
+                  },
+                  body: new URLSearchParams({
+                    razorpay_payment_id: response.razorpay_payment_id,
+                    razorpay_order_id: response.razorpay_order_id,
+                    razorpay_signature: response.razorpay_signature
+                  })
+                })
+                  .then(function(res) { return res.json(); })
+                  .then(function(result) {
+                    if (result.redirect_url) {
+                      window.location.href = result.redirect_url;
+                    } else {
+                      alert(result.error || 'Payment verification failed');
+                      razorpayButton.disabled = false;
+                      razorpayButton.textContent = 'Make Online Payment';
+                    }
+                  })
+                  .catch(function() {
+                    alert('Could not verify payment. If money was deducted, contact support.');
+                    razorpayButton.disabled = false;
+                    razorpayButton.textContent = 'Make Online Payment';
+                  });
+              },
+              modal: {
+                ondismiss: function() {
+                  razorpayButton.disabled = false;
+                  razorpayButton.textContent = 'Make Online Payment';
+                }
+              }
+            };
+
+            var rzp = new Razorpay(options);
+            rzp.on('payment.failed', function() {
+              alert('Payment failed. Please try again.');
+              razorpayButton.disabled = false;
+              razorpayButton.textContent = 'Make Online Payment';
+            });
+            rzp.open();
+          })
+          .catch(function() {
+            alert('Could not start payment. Please try again.');
+            razorpayButton.disabled = false;
+            razorpayButton.textContent = 'Make Online Payment';
+          });
+      });
+    }
+  });
+</script>
+{% endblock script %}

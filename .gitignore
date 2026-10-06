@@ -1,0 +1,24 @@
+# Environment variables (real secrets — never commit)
+.env
+
+# Virtual environment
+venv/
+
+# Django stuff
+*.pyc
+__pycache__/
+db.sqlite3
+*.log
+staticfiles/
+
+# VS Code settings
+.vscode/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Local data export / pulled env
+data.json
+.env.local
+.vercel

@@ -1,0 +1,211 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>StellerCart · Launching</title>
+  <style>
+    /* ── SPACE THEME ── (embedded) */
+    *,
+    *::before,
+    *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    .loader-page {
+      background: radial-gradient(ellipse at center, #0b0a1a 0%, #05040e 100%);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .stars {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .star {
+      position: absolute;
+      background: white;
+      border-radius: 50%;
+      animation: twinkle var(--duration) ease-in-out infinite alternate;
+    }
+
+    @keyframes twinkle {
+      0% { opacity: 0.2; transform: scale(0.8); }
+      100% { opacity: 1; transform: scale(1.2); }
+    }
+
+    .shooting-star {
+      position: absolute;
+      width: 4px;
+      height: 4px;
+      background: white;
+      border-radius: 50%;
+      box-shadow: 0 0 20px 4px rgba(255, 255, 255, 0.6);
+      animation: shoot 4s linear infinite;
+      top: 15%;
+      left: 70%;
+      z-index: 1;
+    }
+
+    .shooting-star::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      right: 100%;
+      width: 80px;
+      height: 1.5px;
+      background: linear-gradient(to left, rgba(255,255,255,0.8), transparent);
+      transform: translateY(-50%);
+    }
+
+    .shooting-star-2 {
+      left: 30%;
+      top: 40%;
+      animation-delay: 2.5s;
+    }
+
+    @keyframes shoot {
+      0% { transform: translate(0, 0) scale(1); opacity: 1; }
+      20% { opacity: 1; }
+      40% { transform: translate(-300px, 200px) scale(0.5); opacity: 0; }
+      41% { transform: translate(0, 0) scale(0); opacity: 0; }
+      100% { transform: translate(0, 0) scale(0); opacity: 0; }
+    }
+
+    .loader-spinner {
+      width: 72px;
+      height: 72px;
+      border: 4px solid rgba(255, 255, 255, 0.1);
+      border-top-color: #a78bfa;
+      border-right-color: #6d28d9;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      position: relative;
+      z-index: 1;
+      box-shadow: 0 0 40px rgba(109, 40, 217, 0.3);
+    }
+
+    .loader-spinner::before {
+      content: '';
+      position: absolute;
+      inset: -12px;
+      border: 2px dashed rgba(167, 139, 250, 0.3);
+      border-radius: 50%;
+      animation: spin 3s linear infinite reverse;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .loader-text {
+      margin-top: 32px;
+      font-size: 28px;
+      font-weight: 700;
+      background: linear-gradient(135deg, #c4b5fd, #a78bfa, #8b5cf6);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      letter-spacing: 2px;
+      text-shadow: 0 0 60px rgba(167, 139, 250, 0.3);
+      position: relative;
+      z-index: 1;
+    }
+
+    .loader-sub {
+      margin-top: 8px;
+      font-size: 15px;
+      color: rgba(255, 255, 255, 0.5);
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      position: relative;
+      z-index: 1;
+    }
+
+    .glow-ring {
+      position: absolute;
+      width: 300px;
+      height: 300px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(109,40,217,0.08) 0%, transparent 70%);
+      animation: pulse 4s ease-in-out infinite;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(0.8); opacity: 0.3; }
+      50% { transform: scale(1.2); opacity: 0.7; }
+      100% { transform: scale(0.8); opacity: 0.3; }
+    }
+
+    @media (max-width: 480px) {
+      .loader-text { font-size: 22px; }
+      .loader-sub { font-size: 12px; letter-spacing: 2px; }
+      .loader-spinner { width: 56px; height: 56px; }
+      .loader-spinner::before { inset: -8px; }
+      .shooting-star { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="loader-page" id="loaderPage">
+    <div class="stars" id="stars"></div>
+    <div class="shooting-star"></div>
+    <div class="shooting-star shooting-star-2"></div>
+    <div class="glow-ring"></div>
+    <div class="loader-spinner"></div>
+    <p class="loader-text">StellerCart</p>
+    <p class="loader-sub">Preparing your galaxy…</p>
+  </div>
+
+  <script>
+    // Generate twinkling stars
+    (function createStars() {
+      const container = document.getElementById('stars');
+      const count = 120;
+      for (let i = 0; i < count; i++) {
+        const star = document.createElement('div');
+        star.className = 'star';
+        const size = Math.random() * 3 + 1;
+        star.style.width = size + 'px';
+        star.style.height = size + 'px';
+        star.style.left = Math.random() * 100 + '%';
+        star.style.top = Math.random() * 100 + '%';
+        star.style.setProperty('--duration', (Math.random() * 3 + 2) + 's');
+        star.style.animationDelay = (Math.random() * 5) + 's';
+        star.style.opacity = Math.random() * 0.6 + 0.2;
+        container.appendChild(star);
+      }
+    })();
+
+    // ── Redirect to the 'next' URL after 3.5 seconds ──
+    window.addEventListener('load', function() {
+      setTimeout(function() {
+        // Get the next URL from Django template context
+        const next = "{{ next_url|default:'login' }}";
+        // Map named routes to actual URLs
+        const urlMap = {
+          'login': "{% url 'login' %}",
+          'homepage': "{% url 'homepage' %}",
+          'signup': "{% url 'signup' %}"
+        };
+        window.location.href = urlMap[next] || urlMap['login'];
+      }, 3500);
+    });
+  </script>
+</body>
+</html>
