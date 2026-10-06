@@ -59,6 +59,7 @@ INSTALLED_APPS = [
     'allauth.account',
     'allauth.socialaccount',
     'allauth.socialaccount.providers.google',
+     'import_export',
     ]
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
