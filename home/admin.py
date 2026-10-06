@@ -1,4 +1,5 @@
 from django.contrib import admin
+from import_export.admin import ImportExportModelAdmin
 from home.models import Contact
 from home.models import Customer
 from home.models import Product
@@ -12,7 +13,10 @@ admin.site.register(Contact)
 
 admin.site.register(Customer)
 
-admin.site.register(Product)
+@admin.register(Product)
+class ProductAdmin(ImportExportModelAdmin):
+    list_display = ('name', 'category', 'price_rupees')
+    search_fields = ('name', 'keywords', 'category')
 
 admin.site.register(Cart)
 
