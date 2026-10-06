@@ -99,7 +99,7 @@ def place_orders_from_cart(user):
     """
     customer = Customer.objects.filter(user=user).order_by('-id').first()
     cart_items = list(
-        Cart.objects.select_for_update()
+        Cart.objects.select_for_update(of=('self',))
         .filter(user=user)
         .select_related('product', 'delivery_option')
     )
